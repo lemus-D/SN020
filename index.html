@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      /* CSS for the full-screen popup overlay */
+      #image-popup-overlay {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.85); /* Semi-transparent black background */
+        z-index: 9999; /* Ensure it sits on top of the A-Frame canvas */
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      #popup-image {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+        border-radius: 8px;
+      }
+    </style>
+
+    <script>
+      // Component to handle clicking the 3D planes
+      AFRAME.registerComponent('popup-on-click', {
+        init: function () {
+          const el = this.el;
+          const overlay = document.querySelector('#image-popup-overlay');
+          const popupImg = document.querySelector('#popup-image');
+
+          el.addEventListener('click', function () {
+            console.log("Plane clicked!");
+
+            // 1. Get the ID of the image asset this plane uses (e.g., "#magneto")
+            const assetId = el.getAttribute('src');
+
+            // 2. Find the actual <img> tag in <a-assets> using that ID
+            const assetEl = document.querySelector(assetId);
+
+            if (assetEl) {
+              // 3. Set the popup's image source to match the clicked image
+              popupImg.src = assetEl.getAttribute('src');
+
+              // 4. Show the overlay
+              overlay.style.display = 'flex';
+            }
+          });
+        }
+      });
+
+      // Script to handle closing the popup when the user taps it
+      document.addEventListener("DOMContentLoaded", function() {
+        const overlay = document.querySelector('#image-popup-overlay');
+        overlay.addEventListener('click', function() {
+          overlay.style.display = 'none'; // Hide overlay
+          document.querySelector('#popup-image').src = ''; // Clear image
+        });
+      });
+    </script>
+  </head>
+  <body>
+
+    <div id="image-popup-overlay">
+      <img id="popup-image" src="" alt="Enlarged Info" />
+    </div>
+
+    <a-scene
+      mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.00000000001"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false">
+
+      <a-assets>
+        <img id="EELogo" src="./EEL.png">
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="near: 0; far: 10000; objects: .clickable"></a-camera>
+      <a-entity mindar-image-target="targetIndex: 1">
+        <a-plane class="clickable" popup-on-click id="plane-EELogo" src="#EELogo" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+    </a-scene>
+  </body>
+</html>
